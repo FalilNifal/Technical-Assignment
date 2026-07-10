@@ -1,0 +1,25 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Send } from "lucide-react";
+import { AppShell } from "../../components/layout/AppShell";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { Input } from "../../components/ui/Input";
+import { Textarea } from "../../components/ui/Textarea";
+import { getApiErrorMessage } from "../../lib/apiClient";
+import { createReport, getProjects, submitReport } from "./reports.api";
+
+function getCurrentWeek() { const today = new Date(); const day = today.getDay(); const diffToMonday = day === 0 ? -6 : 1 - day; const monday = new Date(today); monday.setDate(today.getDate() + diffToMonday); const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); return { weekStart: monday.toISOString().slice(0, 10), weekEnd: sunday.toISOString().slice(0, 10) }; }
+
+export function CreateReportPage() {
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const week = useMemo(() => getCurrentWeek(), []);
+  const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: getProjects });
+  const submitMutation = useMutation({ mutationFn: submitReport, onSuccess: () => navigate("/member/dashboard"), onError: (err) => setError(getApiErrorMessage(err)) });
+  const createMutation = useMutation({ mutationFn: createReport, onSuccess: (report) => submitMutation.mutate(report.id), onError: (err) => setError(getApiErrorMessage(err)) });
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) { event.preventDefault(); setError(""); const formData = new FormData(event.currentTarget); createMutation.mutate({ project_id: String(formData.get("project_id")), week_start: String(formData.get("week_start")), week_end: String(formData.get("week_end")), tasks_completed: String(formData.get("tasks_completed")), tasks_planned: String(formData.get("tasks_planned")), blockers: String(formData.get("blockers")) || null, hours_worked: Number(formData.get("hours_worked")) || null, notes: String(formData.get("notes")) || null }); }
+
+  return <AppShell><div className="mx-auto max-w-5xl space-y-6"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-sm font-semibold text-brand-600">Weekly update</p><h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">Create Weekly Report</h2><p className="mt-2 text-sm leading-6 text-slate-500">Capture completed work, next plans, blockers, and hours in a structured format.</p></div><Button variant="secondary" onClick={() => navigate("/member/dashboard")}><ArrowLeft className="h-4 w-4" />Back</Button></div><Card className="overflow-hidden p-0"><div className="border-b border-slate-200 bg-gradient-to-r from-slate-950 to-brand-700 px-6 py-5 text-white"><p className="text-sm font-semibold text-brand-100">Report details</p><h3 className="mt-1 text-xl font-bold">Submit your weekly team signal</h3></div><form onSubmit={handleSubmit} className="space-y-6 p-6">{error && <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 ring-1 ring-red-100">{error}</div>}<div className="grid gap-4 md:grid-cols-3"><Input label="Week start" name="week_start" type="date" defaultValue={week.weekStart} required /><Input label="Week end" name="week_end" type="date" defaultValue={week.weekEnd} required /><label className="block"><span className="mb-1.5 block text-sm font-semibold text-slate-700">Project / Category</span><select name="project_id" required className="h-11 w-full rounded-2xl border border-slate-200 bg-white/90 px-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-brand-300 focus:ring-4 focus:ring-brand-100"><option value="">Select project</option>{projectsQuery.data?.map((project)=><option key={project.id} value={project.id}>{project.name}</option>)}</select></label></div><div className="grid gap-5 lg:grid-cols-2"><Textarea label="Tasks completed" name="tasks_completed" placeholder="Summarize completed work, outcomes, PRs, releases..." required /><Textarea label="Tasks planned for next week" name="tasks_planned" placeholder="What will you work on next week?" required /></div><Textarea label="Blockers / challenges" name="blockers" placeholder="Mention blockers, risks, dependencies, or challenges..." /><div className="grid gap-4 md:grid-cols-2"><Input label="Hours worked" name="hours_worked" type="number" min="0" max="168" step="0.5" placeholder="32" /><Input label="Optional notes or links" name="notes" placeholder="PR links, documents, references..." /></div><div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end"><Button type="button" variant="secondary" onClick={() => navigate("/member/dashboard")}>Cancel</Button><Button isLoading={createMutation.isPending || submitMutation.isPending}><Send className="h-4 w-4" />Submit report</Button></div></form></Card></div></AppShell>;
+}

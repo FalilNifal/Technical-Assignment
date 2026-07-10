@@ -1,0 +1,29 @@
+{
+    "scripts":  {
+                    "dev":  "vite",
+                    "build":  "tsc -b \u0026\u0026 vite build",
+                    "preview":  "vite preview"
+                },
+    "dependencies":  {
+                         "@tanstack/react-query":  "latest",
+                         "@vitejs/plugin-react":  "latest",
+                         "axios":  "latest",
+                         "clsx":  "latest",
+                         "lucide-react":  "latest",
+                         "react":  "latest",
+                         "react-dom":  "latest",
+                         "react-router-dom":  "latest",
+                         "recharts":  "latest",
+                         "typescript":  "latest",
+                         "vite":  "latest"
+                     },
+    "devDependencies":  {
+                            "@tailwindcss/postcss":  "^4.3.2",
+                            "@types/react":  "latest",
+                            "@types/react-dom":  "latest",
+                            "autoprefixer":  "latest",
+                            "postcss":  "latest",
+                            "tailwindcss":  "latest"
+                        },
+    "type":  "module"
+}
