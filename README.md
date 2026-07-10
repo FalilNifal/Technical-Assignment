@@ -64,6 +64,17 @@ Open the API docs:
 http://localhost:8000/docs
 ```
 
+## Run tests
+
+From the `backend` folder (with the virtualenv active and PostgreSQL running):
+
+```bash
+python -m pytest
+```
+
+The tests spin up an isolated `pulseboard_db_test` database automatically and roll
+back after each test, so they never touch your development data.
+
 ## Run frontend
 
 ```bash
